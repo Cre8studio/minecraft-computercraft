@@ -4,7 +4,7 @@ print("version 0.0.2")
 minFuel = 400
 
 local tArgs = {...}
-local doDebug = true
+local doDebug = false
 
 inventory = {}
 
@@ -21,8 +21,6 @@ function moveForward()
 end
 
 function checkFuel()
-  local fuel = turtle.getFuelLevel()
-  local maxFuel = turtle.checkFuelLimit()
   
   if fuel <= minFuel then
     -- run through the inventory to find coal
@@ -30,29 +28,83 @@ function checkFuel()
   end
 end
 
-function searchInventory(name)
+function searchInventoryFirst(name)
   local returnValue = nil
   
-  for i=0, i<16, 1 do
+  for i=1, 16, 1 do
     turtle.select(i)
     inventory[i] = turtle.getItemDetail()
-    if inventory[i].name == name then
-      returnValue = i
-    endls
+    if inventory[i] ~= nil then
+      if inventory[i].name == name then
+        returnValue = i
+        return returnValue
+      end
+    end
   end
   
   if doDebug then
-    for i=0, #inventory do
-      print(inventory.name[i] .. ": " .. inventory[i].count)
+    debugInventory()
+  end
+  
+  return returnValue
+end
+
+function getInventory()
+  for i=1, 16, 1 do
+    turtle.select(i)
+    inventory[i] = turtle.getItemDetail()
+  end
+end
+
+function searchInventory(name)
+  local returnValue = nil
+  
+  for i=1, 16, 1 do
+    turtle.select(i)
+    inventory[i] = turtle.getItemDetail()
+    if inventory[i] ~= nil then
+      if inventory[i].name == name then
+        returnValue = i
+      end
+    end
+  end
+  
+  if doDebug then
+    for i=1, #inventory do
+      if inventory[i] ~= nil then
+        print(inventory[i].name .. ": " .. inventory[i].count)
+      end
     end
   end
   
   return returnValue
 end
 
-function refuel(slot=1)
-  turtle.select(slot)
-  turtle.refuel(1)
+function refuel()
+  -- determine maximum fuel limit  
+  local fuel = turtle.getFuelLevel()
+  local maxFuel = turtle.checkFuelLimit()
+  -- find fuel we can use
+  fuelSlot = searchInventoryFirst("minecraft:coal")
+  turtle.select(fuelSlot)
+  -- work out the amount of fuel this slot will give
+  -- refuelAmount = inventory[slot].count * 80 -- remove hardcoding, use the fuel array in config
+  -- refuel until the fuel is done or before the maximum limit is reached
+  local iter = 0
+  repeat
+    item = turtle.getItemDetail()
+    turtle.refuel(1)
+    iter = iter + 1
+    print("refueled: " .. iter)
+  until (item == nil)
+end
+
+function debugInventory()
+  for i=1, #inventory do
+    if inventory[i] ~= nil then
+      print(inventory[i].name .. ": " .. inventory[i].count)
+    end
+  end
 end
 
 if #tArgs > 0 then
@@ -61,5 +113,5 @@ if #tArgs > 0 then
   end
 end
 
-inv = searchInventory("minecraft:coal")
-print(inv)
+getInventory()
+refuel()
