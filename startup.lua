@@ -1,5 +1,7 @@
 print("Welcome to Cre8")
-print("version 0.0.2")
+print("version 0.0.3")
+
+websocketServer = "41406829b65e.ngrok.io"
 
 minFuel = 400
 
@@ -21,7 +23,7 @@ function moveForward()
 end
 
 function checkFuel()
-  
+
   if fuel <= minFuel then
     -- run through the inventory to find coal
     -- use fuel until below fuel limit
@@ -30,7 +32,7 @@ end
 
 function searchInventoryFirst(name)
   local returnValue = nil
-  
+
   for i=1, 16, 1 do
     turtle.select(i)
     inventory[i] = turtle.getItemDetail()
@@ -41,11 +43,11 @@ function searchInventoryFirst(name)
       end
     end
   end
-  
+
   if doDebug then
     debugInventory()
   end
-  
+
   return returnValue
 end
 
@@ -58,7 +60,7 @@ end
 
 function searchInventory(name)
   local returnValue = nil
-  
+
   for i=1, 16, 1 do
     turtle.select(i)
     inventory[i] = turtle.getItemDetail()
@@ -68,7 +70,7 @@ function searchInventory(name)
       end
     end
   end
-  
+
   if doDebug then
     for i=1, #inventory do
       if inventory[i] ~= nil then
@@ -76,14 +78,14 @@ function searchInventory(name)
       end
     end
   end
-  
+
   return returnValue
 end
 
 function refuel()
-  -- determine maximum fuel limit  
+  -- determine maximum fuel limit
   local fuel = turtle.getFuelLevel()
-  local maxFuel = turtle.checkFuelLimit()
+  local maxFuel = turtle.getFuelLimit()
   -- find fuel we can use
   fuelSlot = searchInventoryFirst("minecraft:coal")
   turtle.select(fuelSlot)
@@ -113,5 +115,13 @@ if #tArgs > 0 then
   end
 end
 
-getInventory()
-refuel()
+-- getInventory()
+-- refuel()
+
+local ws, err = http.websocket("ws://" .. websocketServer)
+
+if ws then
+  ws.send("connect")
+  print(ws.receive())
+  ws.close()
+end
